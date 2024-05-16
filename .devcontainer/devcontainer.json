@@ -1,0 +1,9 @@
+{
+    "name": "OM Slam development environment",
+    "privileged": true,
+    "remoteUser": "openmower",
+    "dockerComposeFile": "docker-compose.yaml",
+    "service": "workspace",
+    "workspaceFolder": "/home/ws",
+    "containerUser": "openmower"
+}
