@@ -19,12 +19,9 @@
             <param name="angle_crop_min" type="double" value="135.0"/>
             <param name="angle_crop_max" type="double" value="225.0"/>
          </node>
-        <node name="base_to_laser" pkg="tf" type="static_transform_publisher"  args="0.0 0.0 0.18 0 0.0 0.0 base_link base_laser 50"/>
-
-        <node name="amcl"
-        pkg="amcl"
-        type="amcl"
-        clear_params="true" output="screen" required="true">
-            <rosparam command="load" file="$(find om_slam)/params/amcl.yaml" />
-    </node>
+         <node pkg="slam_toolbox" type="localization_slam_toolbox_node" name="slam_toolbox"
+                   output="screen">
+               <rosparam command="load"
+                         file="$(find om_slam)/params/mapper_params_localization.yaml"/>
+             </node>
 </launch>
