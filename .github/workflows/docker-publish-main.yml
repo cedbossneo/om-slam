@@ -82,6 +82,8 @@ jobs:
           context: .
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY_IMAGE }}:main
+          cache-to: type=inline
 
       - name: Export digest
         run: |
