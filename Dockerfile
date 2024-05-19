@@ -54,6 +54,8 @@ RUN apt-get update && \
 # This will already have the submodules initialized, no need to clone again
 COPY --link --from=fetch /opt/om_slam /opt/om_slam
 
+RUN chmod +x /opt/om_slam/src/om_slam/src/publish_pose.py
+
 WORKDIR /opt/om_slam
 
 RUN bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && cd /opt/om_slam/src && catkin_init_workspace && cd .. && catkin_make_isolated"

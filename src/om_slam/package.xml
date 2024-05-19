@@ -12,7 +12,8 @@
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>ldlidar_stl_ros</exec_depend>
   <exec_depend>slam_toolbox</exec_depend>
-  <exec_depend>rospkg</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>tf</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
