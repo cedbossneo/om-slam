@@ -1,11 +1,10 @@
 <launch>
-<node name="ldlidar_publisher_ld19" pkg="ldlidar_ros" type="ldlidar_ros_node" output="screen">
+<node name="ldlidar_publisher_ld19" pkg="ldlidar_stl_ros" type="ldlidar_stl_ros_node" output="screen">
   <param name="product_name" value="LDLiDAR_LD19"/>
-  <param name="laser_scan_topic_name" value="laser"/>
-  <param name="point_cloud_2d_topic_name" value="pointcloud2d"/>
+  <param name="topic_name" value="scan"/>
   <param name="frame_id" value="base_laser"/>
   <param name="port_name" value="/dev/lidar"/>
-  <param name="serial_baudrate" value="115200"/>
+  <param name="serial_baudrate" value="230400"/>
   <!-- Set laser scan directon: -->
   <!--    1. Set counterclockwise, example: <param name="laser_scan_dir" type="bool" value="true"/> -->
   <!--    2. Set clockwise,        example: <param name="laser_scan_dir" type="bool" value="false"/> -->
@@ -29,7 +28,6 @@
           -configuration_basename backpack_2d.lua"
       output="screen">
     <remap from="imu" to="imu/data_raw"/>
-    <remap from="echoes" to="scan"/>
   </node>
 
   <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros"

@@ -11,10 +11,10 @@ deps: submodules
 	rosdep install --from-paths src --ignore-src --default-yes -r
 
 build:
-	catkin_make_isolated
+	catkin_make_isolated --use-ninja
 
 clean:
-	rm -Rf build* devel*
+	rm -Rf build_* devel_*
 
 rviz:
 	export ROS_MASTER_URI=http://10.0.0.134:11311 &&	source devel_isolated/setup.bash &&rviz

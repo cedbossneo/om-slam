@@ -4,6 +4,3 @@
 [submodule "src/lib/cartographer"]
 	path = src/lib/cartographer
 	url = https://github.com/cartographer-project/cartographer
-[submodule "src/lib/ldlidar_ros"]
-	path = src/lib/ldlidar_ros
-	url = https://github.com/ldrobotSensorTeam/ldlidar_ros
