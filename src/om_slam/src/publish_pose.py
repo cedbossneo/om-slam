@@ -4,6 +4,8 @@ import rospy
 from geometry_msgs.msg import PoseStamped, PoseWithCovariance, Vector3
 from xbot_msgs.msg import AbsolutePose
 from tf import transformations
+from xbot_positioning.srv import GPSControlSrv, GPSControlSrvResponse
+from xbot_positioning.srv import SetPoseSrv, SetPoseSrvResponse
 
 class PoseConverter:
     def __init__(self):
@@ -11,10 +13,26 @@ class PoseConverter:
         rospy.init_node('pose_converter', anonymous=True)
 
         # Subscriber to the PoseStamped topic
+        gps_service = rospy.Service('xbot_positioning/set_gps_state', GPSControlSrv, self.set_gps_state_callback)
+        pose_service = rospy.Service('xbot_positioning/set_robot_pose', SetPoseSrv, self.set_pose_callback)
         self.pose_sub = rospy.Subscriber('/tracked_pose', PoseStamped, self.pose_callback)
 
         # Publisher to the AbsolutePose topic
-        self.pose_pub = rospy.Publisher('/xbot_positioning/xb_pose_out', AbsolutePose, queue_size=10)
+        self.pose_pub = rospy.Publisher('/xbot_positioning/xb_pose', AbsolutePose, queue_size=10)
+
+    def set_gps_state_callback(request):
+        # Implement your logic to handle the GPS state change here
+        rospy.loginfo(f"Received request to set GPS state to {request.state}")
+        response = GPSControlSrvResponse()
+        response.success = True
+        return response
+
+    def set_pose_callback(request):
+        # Implement your logic to handle the robot pose change here
+        rospy.loginfo(f"Received request to set robot pose to {request.pose}")
+        response = SetPoseSrvResponse()
+        response.success = True
+        return response
 
     def pose_callback(self, msg):
         # Create an instance of AbsolutePose
@@ -42,7 +60,6 @@ class PoseConverter:
         absolute_pose.vehicle_heading = self.get_vehicle_heading(msg)
         absolute_pose.motion_heading = absolute_pose.vehicle_heading
 
-        rospy.loginfo("Publishing AbsolutePose message.")
         # Publish the AbsolutePose message
         self.pose_pub.publish(absolute_pose)
 

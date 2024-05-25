@@ -14,6 +14,7 @@
   <exec_depend>cartographer</exec_depend>
   <exec_depend>cartographer_ros</exec_depend>
   <exec_depend>xbot_msgs</exec_depend>
+  <exec_depend>xbot_positioning</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>tf</exec_depend>
 
