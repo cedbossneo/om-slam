@@ -1,48 +1,69 @@
 #!/usr/bin/env python3
 
 import rospy
-import tf2_ros
-from nav_msgs.msg import Odometry
-from geometry_msgs.msg import TransformStamped, PoseStamped
+from geometry_msgs.msg import PoseStamped, PoseWithCovariance, Vector3
+from xbot_msgs.msg import AbsolutePose
+from tf import transformations
 
-class OdomToTF:
+class PoseConverter:
     def __init__(self):
-        rospy.init_node('odom_to_tf', anonymous=True)
+        # Initialize the ROS node
+        rospy.init_node('pose_converter', anonymous=True)
 
-        self.br = tf2_ros.TransformBroadcaster()
-        self.pose_pub = rospy.Publisher('/slam_toolbox/pose', PoseStamped, queue_size=10)
-        self.tf_buffer = tf2_ros.Buffer()
-        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+        # Subscriber to the PoseStamped topic
+        self.pose_sub = rospy.Subscriber('/tracked_pose', PoseStamped, self.pose_callback)
 
-        # Parameters
-        self.map_frame = rospy.get_param('~map_frame', 'map_laser')
-        self.odom_frame = rospy.get_param('~odom_frame', 'odom')
-        self.base_link_frame = rospy.get_param('~base_link_frame', 'base_laser')
-        # Subscriber
-        rospy.Subscriber('/xbot_positioning/odom_out', Odometry, self.odom_callback)
+        # Publisher to the AbsolutePose topic
+        self.pose_pub = rospy.Publisher('/xbot_positioning/xb_pose_out', AbsolutePose, queue_size=10)
 
-    def odom_callback(self, msg):
-        current_time = rospy.Time.now()
+    def pose_callback(self, msg):
+        # Create an instance of AbsolutePose
+        absolute_pose = AbsolutePose()
 
-        # Publish map -> odom transform
-        odom_trans = TransformStamped()
-        odom_trans.header.stamp = current_time
-        odom_trans.header.frame_id = self.odom_frame
-        odom_trans.child_frame_id = self.base_link_frame
-        odom_trans.transform.translation.x = msg.pose.pose.position.x
-        odom_trans.transform.translation.y = msg.pose.pose.position.y
-        odom_trans.transform.translation.z = msg.pose.pose.position.z
-        odom_trans.transform.rotation = msg.pose.pose.orientation
-        self.br.sendTransform(odom_trans)
+        # Populate the AbsolutePose message
+        absolute_pose.header = msg.header
+        absolute_pose.sensor_stamp = 0  # Example timestamp, replace with actual sensor timestamp if available
+        absolute_pose.received_stamp = 0
+        absolute_pose.source = AbsolutePose.SOURCE_SENSOR_FUSION  # Example source, modify as needed
+        absolute_pose.flags = AbsolutePose.FLAG_SENSOR_FUSION_DEAD_RECKONING
+        absolute_pose.orientation_valid = 1
+        absolute_pose.motion_vector_valid = 0
+        absolute_pose.position_accuracy = 0.02  # Example accuracy, replace with actual data if available
+        absolute_pose.orientation_accuracy = 0.01  # Example accuracy, replace with actual data if available
 
-        #rospy.loginfo(f"Published transforms and pose at time {current_time.to_sec()}")
+        # Fill in the pose with covariance
+        absolute_pose.pose.pose = msg.pose
+        absolute_pose.pose.covariance = [0] * 36  # Example covariance, replace with actual data if available
 
-    def run(self):
-        rospy.spin()
+        # Example motion vector, replace with actual data if available
+        absolute_pose.motion_vector = Vector3(0.0, 0.0, 0.0)
+
+        # Example headings, replace with actual data if available
+        absolute_pose.vehicle_heading = self.get_vehicle_heading(msg)
+        absolute_pose.motion_heading = absolute_pose.vehicle_heading
+
+        rospy.loginfo("Publishing AbsolutePose message.")
+        # Publish the AbsolutePose message
+        self.pose_pub.publish(absolute_pose)
+
+    def get_vehicle_heading(self, msg):
+        # Replace `x` with the actual object or computation to get theta
+        # Assuming `msg` contains the necessary data to compute theta
+        # Example calculation, replace with actual logic
+        theta = self.calculate_theta_from_pose(msg.pose)
+        return theta
+
+    def calculate_theta_from_pose(self, pose):
+        # Placeholder for actual calculation
+        # For example, calculating yaw from quaternion in pose.orientation
+        orientation_q = pose.orientation
+        orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+        (roll, pitch, yaw) = transformations.euler_from_quaternion(orientation_list)
+        return yaw
 
 if __name__ == '__main__':
     try:
-        node = OdomToTF()
-        node.run()
+        converter = PoseConverter()
+        rospy.spin()
     except rospy.ROSInterruptException:
         pass
