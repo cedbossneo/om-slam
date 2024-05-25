@@ -12,7 +12,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
 
 RUN apt-get update \
   && apt-get install -y ssh make curl unzip psutils libxext6 libxrender1 libxtst6 libxi6 libfreetype6 procps git \
-    python3-pip \
+    python3-pip ros-noetic-rqt-topic ros-noetic-rqt-tf-tree python3-wstool python3-rosdep ninja-build stow \
     rsync \
   && rm -rf /var/lib/apt/lists/*
 

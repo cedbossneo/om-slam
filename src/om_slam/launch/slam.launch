@@ -22,13 +22,22 @@
          <!-- map server -->
           <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0 0 0 0 0 0 base_link base_laser 50"/>
           <node pkg="tf" type="static_transform_publisher" name="imu_base_link_broadcaster" args="0 0 0 0 0 0 base_link imu 100" />
-          <node pkg="om_slam" type="publish_pose.py" name="pose_publish" output="screen" required="true"/>
-<node name="cartographer_node" pkg="cartographer_ros"
+        <node pkg="xbot_positioning" type="xbot_positioning" name="xbot_positioning" output="screen" required="true">
+            <remap from="~imu_in" to="/imu/data_raw"/>
+            <remap from="~wheel_ticks_in" to="/mower/wheel_ticks"/>
+            <remap from="~xb_pose_in" to="xbot_driver_gps/xb_pose"/>
+            <remap from="~xb_pose_out" to="xbot_positioning/xb_pose"/>
+            <remap from="~tracked_pose" to="/tracked_pose"/>
+            <param name="max_gps_accuracy" value="0.2"/>
+            <param name="antenna_offset_x" value="0.3"/>
+            <param name="antenna_offset_y" value="0.0"/>
+        </node>
+        <node name="cartographer_node" pkg="cartographer_ros"
       type="cartographer_node" args="
           -configuration_directory $(find om_slam)/params
           -configuration_basename backpack_2d.lua"
       output="screen">
-    <remap from="imu" to="imu/data_raw"/>
+    <remap from="odom" to="xbot_positioning/odom_out"/>
   </node>
 
   <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros"
