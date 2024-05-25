@@ -1,9 +1,9 @@
-[submodule "src/lib/ldlidar_stl_ros"]
-	path = src/lib/ldlidar_stl_ros
-	url = https://github.com/ldrobotSensorTeam/ldlidar_stl_ros
 [submodule "src/lib/cartographer_ros"]
 	path = src/lib/cartographer_ros
 	url = https://github.com/cartographer-project/cartographer_ros
 [submodule "src/lib/cartographer"]
 	path = src/lib/cartographer
 	url = https://github.com/cartographer-project/cartographer
+[submodule "src/lib/ldlidar_ros"]
+	path = src/lib/ldlidar_ros
+	url = https://github.com/ldrobotSensorTeam/ldlidar_ros

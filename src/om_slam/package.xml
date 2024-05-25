@@ -10,8 +10,8 @@
   <url type="website">https://github.com/cedbossneo/om-slam</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <exec_depend>ldlidar_stl_ros</exec_depend>
-  <exec_depend>slam_toolbox</exec_depend>
+  <exec_depend>ldlidar_ros</exec_depend>
+  <exec_depend>cartographer_ros</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>tf</exec_depend>
 

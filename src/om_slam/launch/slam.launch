@@ -1,29 +1,37 @@
 <launch>
-           <node name="LD19" pkg="ldlidar_stl_ros" type="ldlidar_stl_ros_node" output="screen" required="true">
-            <param name="product_name" value="LDLiDAR_LD19"/>
-            <param name="topic_name" value="/scan"/>
-            <param name="frame_id" value="base_laser"/>
-            <param name="port_name" value ="/dev/lidar"/>
-            <param name="port_baudrate" value ="230400"/>
-            <!-- Set laser scan directon: -->
-            <!--    1. Set counterclockwise, example: <param name="laser_scan_dir" type="bool" value="true"/> -->
-            <!--    2. Set clockwise,        example: <param name="laser_scan_dir" type="bool" value="false"/> -->
-            <param name="laser_scan_dir" type="bool" value="true"/>
-            <!-- Angle crop setting, Mask data within the set angle range -->
-            <!--    1. Enable angle crop fuction: -->
-            <!--       1.1. enable angle crop,  example: <param name="enable_angle_crop_func" type="bool" value="true"/> -->
-            <!--       1.2. disable angle crop, example: <param name="enable_angle_crop_func" type="bool" value="false"/> -->
-            <param name="enable_angle_crop_func" type="bool" value="false"/>
-            <!--    2. Angle cropping interval setting, The distance and intensity data within the set angle range will be set to 0 -->
-            <!--       angle >= "angle_crop_min" and angle <= "angle_crop_max", unit is degress -->
-            <param name="angle_crop_min" type="double" value="135.0"/>
-            <param name="angle_crop_max" type="double" value="225.0"/>
-         </node>
-          <node name="base_to_laser" pkg="tf" type="static_transform_publisher"  args="0.0 0.0 0.18 0 0.0 0.0 base_link base_laser 50"/>
-        <node name="publish_pose" pkg="om_slam" type="publish_pose.py" output="screen" required="true"/>
-         <node pkg="slam_toolbox" type="async_slam_toolbox_node" name="slam_toolbox" required="true"
-                   output="screen">
-               <rosparam command="load"
-                         file="$(find om_slam)/params/mapper_params_localization.yaml"/>
-             </node>
+<node name="ldlidar_publisher_ld19" pkg="ldlidar_ros" type="ldlidar_ros_node" output="screen">
+  <param name="product_name" value="LDLiDAR_LD19"/>
+  <param name="laser_scan_topic_name" value="laser"/>
+  <param name="point_cloud_2d_topic_name" value="pointcloud2d"/>
+  <param name="frame_id" value="base_laser"/>
+  <param name="port_name" value="/dev/lidar"/>
+  <param name="serial_baudrate" value="115200"/>
+  <!-- Set laser scan directon: -->
+  <!--    1. Set counterclockwise, example: <param name="laser_scan_dir" type="bool" value="true"/> -->
+  <!--    2. Set clockwise,        example: <param name="laser_scan_dir" type="bool" value="false"/> -->
+  <param name="laser_scan_dir" type="bool" value="true"/>
+  <!-- Angle crop setting, Mask data within the set angle range -->
+  <!--    1. Enable angle crop fuction: -->
+  <!--       1.1. enable angle crop,  example: <param name="enable_angle_crop_func" type="bool" value="true"/> -->
+  <!--       1.2. disable angle crop, example: <param name="enable_angle_crop_func" type="bool" value="false"/> -->
+  <param name="enable_angle_crop_func" type="bool" value="false"/>
+  <!--    2. Angle cropping interval setting, The distance and intensity data within the set angle range will be set to 0 -->
+  <!--       angle >= "angle_crop_min" and angle <= "angle_crop_max", unit is degress -->
+  <param name="angle_crop_min" type="double" value="135.0"/>
+  <param name="angle_crop_max" type="double" value="225.0"/>
+ </node>
+         <!-- map server -->
+          <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0 0 0 0 0 0 base_link base_laser 50"/>
+          <node pkg="tf" type="static_transform_publisher" name="imu_base_link_broadcaster" args="0 0 0 0 0 0 base_link imu 100" />
+<node name="cartographer_node" pkg="cartographer_ros"
+      type="cartographer_node" args="
+          -configuration_directory $(find om_slam)/params
+          -configuration_basename backpack_2d.lua"
+      output="screen">
+    <remap from="imu" to="imu/data_raw"/>
+    <remap from="echoes" to="scan"/>
+  </node>
+
+  <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros"
+      type="cartographer_occupancy_grid_node" args="-resolution 0.10" />
 </launch>

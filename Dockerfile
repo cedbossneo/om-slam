@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 #   - git
 #   - mosquitto broker
 #   - nginx (remove default site to free up port 80)
-RUN apt-get update && apt-get install --yes git
+RUN apt-get update && apt-get install --yes git python3-wstool python3-rosdep ninja-build stow
 
 # Update rosdep
 RUN rosdep update --rosdistro $ROS_DISTRO
@@ -22,6 +22,8 @@ COPY --link ./ /opt/om_slam
 WORKDIR /opt/om_slam
 
 RUN git submodule update --init --recursive
+
+RUN src/lib/cartographer/scripts/install_abseil.sh
 
 # Fetch the repo and assemble the list of dependencies. We will pull these in the next step and actually run install on them
 # If the package list is the same as last time, the apt install step is cached as well which saves a lot of time.

@@ -26,7 +26,7 @@ RUN mkdir -p /home/ws/build /home/ws/install /home/ws/log \
 
 RUN ( \
     echo "source /opt/ros/noetic/setup.bash"; \
-    echo "source /home/ws/install/setup.bash"; \
+    echo "source /home/ws/devel_isolated/setup.bash"; \
     echo "export DISPLAY=:0"; \
   ) >> /home/$USERNAME/.bashrc
 
