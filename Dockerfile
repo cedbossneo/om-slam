@@ -23,8 +23,6 @@ WORKDIR /opt/om_slam
 
 RUN git submodule update --init --recursive
 
-RUN src/lib/cartographer/scripts/install_abseil.sh
-
 # Fetch the repo and assemble the list of dependencies. We will pull these in the next step and actually run install on them
 # If the package list is the same as last time, the apt install step is cached as well which saves a lot of time.
 # Since the list gets sorted, it will be the same each time and the cache will know that by file checksum in the COPY command.
@@ -37,7 +35,7 @@ WORKDIR /opt/om_slam
 
 # This creates the sorted list of apt-get install commands.
 RUN apt-get update && \
-    rosdep install --from-paths src --ignore-src --simulate | \
+    rosdep install --from-paths src --ignore-src --simulate -r | \
     sed --expression '1d' | sort | tr -d '\n' | sed --expression 's/  apt-get install//g' > /apt-install_list \
     && rm -rf /var/lib/apt/lists/*
 
@@ -49,6 +47,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 #Fetch the list of packages, this only changes if new dependencies have been added (only sometimes)
 COPY --link --from=dependencies /apt-install_list /apt-install_list
+
 RUN apt-get update && \
     apt-get install --no-install-recommends --yes $(cat /apt-install_list) && \
     rm -rf /var/lib/apt/lists/*
@@ -60,7 +59,9 @@ RUN chmod +x /opt/om_slam/src/om_slam/src/publish_pose.py
 
 WORKDIR /opt/om_slam
 
-RUN bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && cd /opt/om_slam/src && catkin_init_workspace && cd .. && catkin_make_isolated"
+RUN src/lib/cartographer/scripts/install_abseil.sh
+
+RUN bash -c "source /opt/ros/$ROS_DISTRO/setup.bash && cd /opt/om_slam/src && catkin_init_workspace && cd .. && catkin_make_isolated --use-ninja"
 
 COPY .github/assets/slam_entrypoint.sh /slam_entrypoint.sh
 RUN chmod +x /slam_entrypoint.sh
