@@ -55,8 +55,6 @@ RUN apt-get update && \
 # This will already have the submodules initialized, no need to clone again
 COPY --link --from=fetch /opt/om_slam /opt/om_slam
 
-RUN chmod +x /opt/om_slam/src/om_slam/src/publish_pose.py
-
 WORKDIR /opt/om_slam
 
 RUN src/lib/cartographer/scripts/install_abseil.sh
