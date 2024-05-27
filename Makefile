@@ -23,4 +23,4 @@ rqt:
 	export ROS_MASTER_URI=http://10.0.0.134:11311 &&	source devel_isolated/setup.bash &&rqt
 
 run:
-	export ROS_MASTER_URI=http://10.0.0.134:11311 && source ./.devcontainer/mower_config.sh &&	source devel_isolated/setup.bash  &&	roslaunch om_slam slam.launch
+	export ROS_MASTER_URI=http://10.0.0.134:11311 && source devel_isolated/setup.bash  &&	roslaunch om_slam slam.launch
