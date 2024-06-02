@@ -21,7 +21,7 @@
  </node>
          <!-- map server -->
           <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0 0 0 0 0 0 base_link base_laser 50"/>
-          <node pkg="tf" type="static_transform_publisher" name="imu_base_link_broadcaster" args="0 0 0 0 0 0 base_link imu 100" />
+          <node pkg="tf" type="static_transform_publisher" name="imu_base_link_broadcaster" args="0 0 0 0 0 0 base_link imu 50" />
         <node pkg="xbot_positioning" type="xbot_positioning" name="xbot_positioning" output="screen" required="true">
             <remap from="~imu_in" to="/imu/data_raw"/>
             <remap from="~fix_out" to="/fix"/>
@@ -38,7 +38,7 @@
           -configuration_directory $(find om_slam)/params
           -configuration_basename backpack_2d.lua"
       output="screen">
-    <remap from="odom" to="xbot_positioning/odom_out"/>
+    <remap from="odom" to="/xbot_positioning/odom_out"/>
   </node>
 
   <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros"
