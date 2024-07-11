@@ -1,48 +1,34 @@
 <launch>
-<node name="ldlidar_publisher_ld19" pkg="ldlidar_stl_ros" type="ldlidar_stl_ros_node" output="screen">
-  <param name="product_name" value="LDLiDAR_LD19"/>
-  <param name="topic_name" value="scan"/>
-  <param name="frame_id" value="base_laser"/>
-  <param name="port_name" value="/dev/lidar"/>
-  <param name="serial_baudrate" value="230400"/>
-  <!-- Set laser scan directon: -->
-  <!--    1. Set counterclockwise, example: <param name="laser_scan_dir" type="bool" value="true"/> -->
-  <!--    2. Set clockwise,        example: <param name="laser_scan_dir" type="bool" value="false"/> -->
-  <param name="laser_scan_dir" type="bool" value="true"/>
-  <!-- Angle crop setting, Mask data within the set angle range -->
-  <!--    1. Enable angle crop fuction: -->
-  <!--       1.1. enable angle crop,  example: <param name="enable_angle_crop_func" type="bool" value="true"/> -->
-  <!--       1.2. disable angle crop, example: <param name="enable_angle_crop_func" type="bool" value="false"/> -->
-  <param name="enable_angle_crop_func" type="bool" value="false"/>
-  <!--    2. Angle cropping interval setting, The distance and intensity data within the set angle range will be set to 0 -->
-  <!--       angle >= "angle_crop_min" and angle <= "angle_crop_max", unit is degress -->
-  <param name="angle_crop_min" type="double" value="135.0"/>
-  <param name="angle_crop_max" type="double" value="225.0"/>
- </node>
-      <node name="laser_scan_to_point_cloud" pkg="om_slam" type="laser_scan_to_point_cloud.py" output="screen"/>
+    <node name="ldlidar_publisher_ld19" pkg="ldlidar_stl_ros" type="ldlidar_stl_ros_node" output="screen">
+      <param name="product_name" value="LDLiDAR_LD19"/>
+      <param name="topic_name" value="scan"/>
+      <param name="frame_id" value="base_laser"/>
+      <param name="port_name" value="/dev/lidar"/>
+      <param name="serial_baudrate" value="230400"/>
+      <!-- Set laser scan directon: -->
+      <!--    1. Set counterclockwise, example: <param name="laser_scan_dir" type="bool" value="true"/> -->
+      <!--    2. Set clockwise,        example: <param name="laser_scan_dir" type="bool" value="false"/> -->
+      <param name="laser_scan_dir" type="bool" value="true"/>
+      <!-- Angle crop setting, Mask data within the set angle range -->
+      <!--    1. Enable angle crop fuction: -->
+      <!--       1.1. enable angle crop,  example: <param name="enable_angle_crop_func" type="bool" value="true"/> -->
+      <!--       1.2. disable angle crop, example: <param name="enable_angle_crop_func" type="bool" value="false"/> -->
+      <param name="enable_angle_crop_func" type="bool" value="false"/>
+      <!--    2. Angle cropping interval setting, The distance and intensity data within the set angle range will be set to 0 -->
+      <!--       angle >= "angle_crop_min" and angle <= "angle_crop_max", unit is degress -->
+      <param name="angle_crop_min" type="double" value="135.0"/>
+      <param name="angle_crop_max" type="double" value="225.0"/>
+    </node>
+    <node name="om_slam_node" pkg="om_slam" type="om_slam_node" output="screen"/>
          <!-- map server -->
-          <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0.26 -0.10 0 0 0 3.141509 base_link base_laser 50"/>
-          <node pkg="tf" type="static_transform_publisher" name="imu_base_link_broadcaster" args="0 0 0 0 0 0 base_link imu 50" />
-        <node pkg="xbot_positioning" type="xbot_positioning" name="xbot_positioning" output="screen" required="true">
-            <remap from="~imu_in" to="/imu/data_raw"/>
-            <remap from="~imu_out" to="/imu"/>
-            <remap from="~fix_out" to="/fix"/>
-            <remap from="~wheel_ticks_in" to="/mower/wheel_ticks"/>
-            <remap from="~xb_pose_in" to="xbot_driver_gps/xb_pose"/>
-            <remap from="~xb_pose_out" to="xbot_positioning/xb_pose"/>
-	          <remap from="~odom_out" to="xbot_positioning/odom_out"/>
-            <remap from="~tracked_pose" to="/tracked_pose"/>
-            <param name="max_gps_accuracy" value="0.2"/>
-            <param name="antenna_offset_x" value="0.3"/>
-            <param name="antenna_offset_y" value="0.0"/>
-        </node>
-        <node name="cartographer_node" pkg="cartographer_ros"
-      type="cartographer_node" args="
-          -configuration_directory $(find om_slam)/params
-          -configuration_basename mower.lua"
-      output="screen">
-    <remap from="odom" to="/xbot_positioning/odom_out"/>
-  </node>
-  <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros"
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0.26 -0.10 0 0 0 3.141509 base_link base_laser 50"/>
+    <node name="cartographer_node" pkg="cartographer_ros"
+        type="cartographer_node" args="
+            -configuration_directory $(find om_slam)/params
+            -configuration_basename mower.lua"
+        output="screen">
+      <remap from="odom" to="/xbot_positioning/odom_out"/>
+    </node>
+    <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros"
       type="cartographer_occupancy_grid_node" args="-resolution 0.10" />
 </launch>
