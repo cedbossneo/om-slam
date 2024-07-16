@@ -19,7 +19,6 @@
       <param name="angle_crop_min" type="double" value="135.0"/>
       <param name="angle_crop_max" type="double" value="225.0"/>
     </node>
-    <node name="om_slam_node" pkg="om_slam" type="om_slam_node" output="screen"/>
          <!-- map server -->
     <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" args="0.26 -0.10 0 0 0 3.141509 base_link base_laser 50"/>
     <node name="cartographer_node" pkg="cartographer_ros"
@@ -31,4 +30,5 @@
     </node>
     <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros"
       type="cartographer_occupancy_grid_node" args="-resolution 0.10" />
+    <node name="om_slam_node" pkg="om_slam" type="om_slam_node" output="screen"/>
 </launch>

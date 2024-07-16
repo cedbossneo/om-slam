@@ -8,6 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   xbot_msgs
   geometry_msgs
   sensor_msgs
+  cartographer_ros_msgs
+  xbot_positioning
 )
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -44,12 +46,17 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+ include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ executable
-add_executable(${PROJECT_NAME}_node src/om_slam_node.cpp)
+add_executable(${PROJECT_NAME}_node         src/xbot_positioning_core.h
+        src/xbot_positioning_core.cpp
+        src/OrientationMeasurementModel.hpp
+        src/OrientationMeasurementModel2.hpp
+        src/PositionMeasurementModel.hpp
+        src/SystemModel.hpp src/om_slam_node.cpp)
 
 ## Rename C++ executable without prefix
 set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME om_slam_node PREFIX "")

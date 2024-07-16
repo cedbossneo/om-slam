@@ -25,6 +25,7 @@ options = {
   provide_odom_frame = false,
   publish_tracked_pose = true,
   publish_frame_projected_to_2d = true,
+  publish_to_tf = true,
   use_odometry = true,
   use_nav_sat = false,
   use_landmarks = false,
