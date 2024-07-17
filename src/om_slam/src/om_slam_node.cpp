@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <ros/topic.h> // Include the header for waitForMessage
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/LaserScan.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -63,7 +64,6 @@ void onImu(const sensor_msgs::Imu::ConstPtr &msg) {
         }
     }
     if (!has_gps) {
-        ROS_WARN("No GPS fix yet, skipping IMU update");
         return;
     }
     core.predict(vx, msg->angular_velocity.z - gyro_offset, (msg->header.stamp - last_imu.header.stamp).toSec());
@@ -147,6 +147,8 @@ void poseCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_stamped) {
 void onGpsPose(const xbot_msgs::AbsolutePose::ConstPtr &msg) {
     if((msg->flags & (xbot_msgs::AbsolutePose::FLAG_GPS_RTK_FIXED)) == 0) {
         ROS_INFO_STREAM_THROTTLE(1, "Dropped GPS update, since it's not RTK Fixed");
+        core.updatePosition(msg->pose.pose.position.x, msg->pose.pose.position.y, 500);
+        has_gps = true;
         return;
     }
     core.updatePosition(msg->pose.pose.position.x, msg->pose.pose.position.y, 0.001);
@@ -173,8 +175,6 @@ bool setPose(xbot_positioning::SetPoseSrvRequest &req, xbot_positioning::SetPose
 
 int main(int argc, char** argv) {
     // Initialize laser projector
-    laser_projector_ = new laser_geometry::LaserProjection();
-
     ros::init(argc, argv, "om_slam_node");
 
     ros::NodeHandle n;
@@ -183,17 +183,40 @@ int main(int argc, char** argv) {
     ros::ServiceServer pose_service = n.advertiseService("/xbot_positioning/set_robot_pose", setPose);
     
     // Set up subscribers and publishers
-    pc_pub_ = n.advertise<sensor_msgs::PointCloud2>("/points2", 10);
-    absolute_pose_pub_ = n.advertise<xbot_msgs::AbsolutePose>("/xbot_positioning/xb_pose", 50);
     odometry_pub = n.advertise<nav_msgs::Odometry>("/xbot_positioning/odom_out", 50);
-    ros::Subscriber scan_sub_ = n.subscribe("/scan", 10, scanCallback);
-    ros::Subscriber pose_sub_ = n.subscribe("/tracked_pose", 50, poseCallback);
+    absolute_pose_pub_ = n.advertise<xbot_msgs::AbsolutePose>("/xbot_positioning/xb_pose", 50);
+    pc_pub_ = n.advertise<sensor_msgs::PointCloud2>("/points2", 10);
+
     ros::Subscriber gps_pose_sub_ = n.subscribe("/xbot_driver_gps/xb_pose", 10, onGpsPose);
     ros::Subscriber imu_sub = n.subscribe("/imu/data_raw", 10, onImu);
     ros::Subscriber wheel_tick_sub = n.subscribe("/mower/wheel_ticks", 10, onWheelTicks);
+
+    ROS_INFO("Waiting for /scan topic to be published...");
+    // Wait for a single message on the topic
+    boost::shared_ptr<const sensor_msgs::LaserScan> scanMsg = ros::topic::waitForMessage<sensor_msgs::LaserScan>("/scan", n);
+    if (scanMsg) {
+        ROS_INFO("Message received from /scan, proceeding to subscribe");
+    } else {
+        ROS_ERROR("Failed to receive a message from /scan");
+        return 1;
+    }
+    laser_projector_ = new laser_geometry::LaserProjection();
+
+    ros::Subscriber scan_sub_ = n.subscribe("/scan", 10, scanCallback);
     ROS_INFO("om_slam_node initialized.");
 
-    ros::spin();
+    ros::AsyncSpinner spinner(0); // Use 2 threads for spinning
+    spinner.start();
+    ROS_INFO("Waiting for /tracked_pose topic to be published...");
+    boost::shared_ptr<const geometry_msgs::PoseStamped> poseMsg = ros::topic::waitForMessage<geometry_msgs::PoseStamped>("/tracked_pose", n);
+    if (poseMsg) {
+        ROS_INFO("Message received from /tracked_pose, proceeding to subscribe");
+        ros::Subscriber pose_sub_ = n.subscribe("/tracked_pose", 50, poseCallback);
+    } else {
+        ROS_ERROR("Failed to receive a message from /tracked_pose");
+    }
+    ros::waitForShutdown();
+    spinner.stop();
     ROS_INFO("om_slam_node uninitialized.");
 
     // Cleanup
