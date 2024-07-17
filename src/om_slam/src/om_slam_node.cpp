@@ -23,6 +23,7 @@ nav_msgs::Odometry odometry;
 bool has_ticks;
 xbot_msgs::WheelTick last_ticks;
 bool has_gyro;
+bool has_gps;
 sensor_msgs::Imu last_imu;
 ros::Time gyro_calibration_start;
 double gyro_offset;
@@ -61,7 +62,10 @@ void onImu(const sensor_msgs::Imu::ConstPtr &msg) {
             return;
         }
     }
-
+    if (!has_gps) {
+        ROS_WARN("No GPS fix yet, skipping IMU update");
+        return;
+    }
     core.predict(vx, msg->angular_velocity.z - gyro_offset, (msg->header.stamp - last_imu.header.stamp).toSec());
     auto x = core.updateSpeed(vx, msg->angular_velocity.z - gyro_offset,0.01);
 
@@ -141,11 +145,12 @@ void poseCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_stamped) {
 }
 
 void onGpsPose(const xbot_msgs::AbsolutePose::ConstPtr &msg) {
-    /*if((msg->flags & (xbot_msgs::AbsolutePose::FLAG_GPS_RTK_FIXED)) == 0) {
+    if((msg->flags & (xbot_msgs::AbsolutePose::FLAG_GPS_RTK_FIXED)) == 0) {
         ROS_INFO_STREAM_THROTTLE(1, "Dropped GPS update, since it's not RTK Fixed");
         return;
-    }*/
+    }
     core.updatePosition(msg->pose.pose.position.x, msg->pose.pose.position.y, 0.001);
+    has_gps = true;
 }
 
 bool setGpsState(xbot_positioning::GPSControlSrvRequest &req, xbot_positioning::GPSControlSrvResponse &res) {
