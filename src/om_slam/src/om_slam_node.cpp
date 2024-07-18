@@ -115,6 +115,9 @@ void onWheelTicks(const xbot_msgs::WheelTick::ConstPtr &msg) {
 }
 
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan_msg) {
+    if (!has_gps) {
+        return;
+    }
     sensor_msgs::PointCloud2 cloud_msg;
     laser_projector_->projectLaser(*scan_msg, cloud_msg);
     pc_pub_.publish(cloud_msg);
@@ -147,8 +150,6 @@ void poseCallback(const geometry_msgs::PoseStamped::ConstPtr& pose_stamped) {
 void onGpsPose(const xbot_msgs::AbsolutePose::ConstPtr &msg) {
     if((msg->flags & (xbot_msgs::AbsolutePose::FLAG_GPS_RTK_FIXED)) == 0) {
         ROS_INFO_STREAM_THROTTLE(1, "Dropped GPS update, since it's not RTK Fixed");
-        core.updatePosition(msg->pose.pose.position.x, msg->pose.pose.position.y, 500);
-        has_gps = true;
         return;
     }
     core.updatePosition(msg->pose.pose.position.x, msg->pose.pose.position.y, 0.001);
@@ -205,18 +206,20 @@ int main(int argc, char** argv) {
     ros::Subscriber scan_sub_ = n.subscribe("/scan", 10, scanCallback);
     ROS_INFO("om_slam_node initialized.");
 
-    ros::AsyncSpinner spinner(0); // Use 2 threads for spinning
-    spinner.start();
+    ros::Rate rate(10); // 10 Hz
     ROS_INFO("Waiting for /tracked_pose topic to be published...");
-    boost::shared_ptr<const geometry_msgs::PoseStamped> poseMsg = ros::topic::waitForMessage<geometry_msgs::PoseStamped>("/tracked_pose", n);
-    if (poseMsg) {
-        ROS_INFO("Message received from /tracked_pose, proceeding to subscribe");
-        ros::Subscriber pose_sub_ = n.subscribe("/tracked_pose", 50, poseCallback);
-    } else {
-        ROS_ERROR("Failed to receive a message from /tracked_pose");
+    while (ros::ok()) {
+        if (ros::topic::waitForMessage<geometry_msgs::PoseStamped>("/tracked_pose", n, ros::Duration(1.0))) {
+            ROS_INFO("Message received from /tracked_pose, proceeding to subscribe");
+            break;
+        }
+        ros::spinOnce();
+        rate.sleep();
     }
-    ros::waitForShutdown();
-    spinner.stop();
+
+    ros::Subscriber pose_sub_ = n.subscribe("/tracked_pose", 50, poseCallback);
+
+    ros::spin();
     ROS_INFO("om_slam_node uninitialized.");
 
     // Cleanup
