@@ -29,3 +29,6 @@ rqt:
 
 run:
 	export ROS_MASTER_URI=http://10.0.0.134:11311 && source devel_isolated/setup.bash  &&	roslaunch om_slam slam.launch
+
+run-slam:
+	export ROS_MASTER_URI=http://10.0.0.134:11311 && source devel_isolated/setup.bash  &&	rosrun om_slam om_slam_node
